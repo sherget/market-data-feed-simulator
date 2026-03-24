@@ -21,5 +21,5 @@ Börse stream real-time market data.
 - [ ] UDP Multicast Publisher
 - [ ] Measure latency (UDP)
 - [ ] Kafka Integration
-- [ ] Persistency (InfluxDB/TimescaleDB)
+- [ ] Persistence (InfluxDB/TimescaleDB)
 - [ ] Docker + Minikube
