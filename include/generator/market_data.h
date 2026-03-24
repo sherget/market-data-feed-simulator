@@ -4,6 +4,6 @@
 #include <string>
 
 namespace market_data {
-std::string greet(const std::string &name);
+std::string greet(const std::string& name);
 }
 #endif
