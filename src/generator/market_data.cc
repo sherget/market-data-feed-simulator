@@ -16,6 +16,8 @@ void generate() {
     }
 }
 
+// Random Walk is usually more sophisticated with drift, volatility, spread, bid and ask prices.
+// Skipped for now
 void random_walk(Tick& ticker) {
     static std::random_device rd;
     static std::mt19937 mt(rd());
