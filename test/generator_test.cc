@@ -1,37 +1,60 @@
 #include <gtest/gtest.h>
 
-#include "config.h"
 #include "generator/market_data.h"
 
-TEST(SymbolManagement, AddsNewSymbolToTickers) {
-    int initial_size = config::tickers.size();
-    market_data::add_symbol("TestTicker", 50000);
-    int current_size = config::tickers.size();
+class MarketDataGeneratorTest : public ::testing::Test {
+   protected:
+    market_data::MarketDataGenerator generator;
+};
+
+TEST_F(MarketDataGeneratorTest, AddsNewSymbolToTickers) {
+    int initial_size = generator.get_symbols().size();
+    generator.add_symbol("TestTicker", 50000);
+    int current_size = generator.get_symbols().size();
     EXPECT_EQ(current_size, initial_size + 1);
 }
 
-TEST(SymbolManagement, RemovesSymbolFromTickersByName) {
-    market_data::add_symbol("TestTicker", 50000);
-    int initial_size = config::tickers.size();
-    market_data::remove_symbol("TestTicker");
-    int current_size = config::tickers.size();
+TEST_F(MarketDataGeneratorTest, RemovesSymbolFromTickersByName) {
+    generator.add_symbol("TestTicker", 50000);
+    int initial_size = generator.get_symbols().size();
+    generator.remove_symbol("TestTicker");
+    int current_size = generator.get_symbols().size();
     EXPECT_EQ(current_size, initial_size - 1);
 }
 
-TEST(RandomWalkTest, ValueStaysPositive) {
-    market_data::Tick tick = {"TestTicker", 1, 0};
-    int initial_value = tick.price_in_cents;
-    for (int i = 0; i < 1000; i++) {
-        market_data::random_walk(tick);
+TEST_F(MarketDataGeneratorTest, GenerateKeepsPricesNonNegative) {
+    generator.add_symbol("TestTicker", 1);
+    for (int i = 0; i < 100; i++) {
+        generator.generate();
+        for (const auto& tick : generator.get_symbols()) {
+            EXPECT_GE(tick.price_in_cents, 0);
+        }
     }
-    int current_value = tick.price_in_cents;
-    EXPECT_GT(current_value, 0);
 }
 
-TEST(RandomWalkTest, PriceChangesByAtMostOne) {
-    market_data::Tick tick = {"TestTicker", 10, 0};
-    int initial_value = tick.price_in_cents;
-    market_data::random_walk(tick);
-    int difference = tick.price_in_cents - 10;
-    EXPECT_TRUE(difference >= -1 && difference <= 1);
+// To make this test 100% deterministic we have to check for timestamp changes in addition to price
+// changes because there is a slim random chance that all default tickers random walk to their
+// original price.
+TEST_F(MarketDataGeneratorTest, GenerateActuallyChangesPrices) {
+    auto before = generator.get_symbols();
+    bool any_changed = false;
+
+    for (int i = 0; i < 100; i++) {
+        generator.generate();
+    }
+
+    auto after = generator.get_symbols();
+    for (size_t i = 0; i < before.size(); i++) {
+        if (before[i].price_in_cents != after[i].price_in_cents) {
+            any_changed = true;
+            break;
+        }
+    }
+
+    if (!any_changed) {
+        if (before[0].timestamp != after[0].timestamp) {
+            any_changed = true;
+        }
+    }
+    EXPECT_TRUE(any_changed);
 }

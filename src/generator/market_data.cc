@@ -10,31 +10,27 @@
 
 namespace market_data {
 
-void generate() {
+MarketDataGenerator::MarketDataGenerator() : mt_(rd_()), dist_(-1, 1) {}
+void MarketDataGenerator::generate() {
     for (auto& tick : config::tickers) {
-        random_walk(tick);
+        this->random_walk(tick);
     }
 }
 
-// Random Walk is usually more sophisticated with drift, volatility, spread, bid and ask prices.
-// Skipped for now
-void random_walk(Tick& ticker) {
-    static std::random_device rd;
-    static std::mt19937 mt(rd());
-    static std::uniform_int_distribution<> dist(-1, 1);
-    int step = dist(mt);
+void MarketDataGenerator::random_walk(Tick& ticker) {
+    int step = this->dist_(this->mt_);
     ticker.price_in_cents += step;
     if (ticker.price_in_cents < 0) ticker.price_in_cents = 0;
 }
 
-void add_symbol(std::string name, double price_in_cents) {
+void MarketDataGenerator::add_symbol(std::string name, double price_in_cents) {
     auto now = std::chrono::system_clock::now();
     auto timestamp_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     config::tickers.emplace_back(name, price_in_cents, timestamp_ms);
 }
 
-int remove_symbol(std::string name) {
+int MarketDataGenerator::remove_symbol(std::string name) {
     auto it = std::find_if(config::tickers.begin(), config::tickers.end(),
                            [&name](const market_data::Tick& t) { return t.name == name; });
     if (it == config::tickers.end()) {
@@ -45,6 +41,6 @@ int remove_symbol(std::string name) {
     return 0;
 }
 
-std::vector<Tick> get_symbols() { return config::tickers; }
+std::vector<Tick> MarketDataGenerator::get_symbols() { return config::tickers; }
 
 }  // namespace market_data

@@ -10,9 +10,10 @@ void helper_print_tickers(std::vector<market_data::Tick> tickers) {
 }
 
 int main() {
+    market_data::MarketDataGenerator generator;
     while (true) {
-        market_data::generate();
-        helper_print_tickers(market_data::get_symbols());
+        generator.generate();
+        helper_print_tickers(generator.get_symbols());
         std::cout << "\n";
     }
 }
