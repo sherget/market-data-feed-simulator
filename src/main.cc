@@ -1,6 +1,9 @@
+#include <chrono>
 #include <iostream>
+#include <thread>
 #include <vector>
 
+#include "config.h"
 #include "generator/market_data.h"
 
 void helper_print_tickers(std::vector<market_data::Tick> tickers) {
@@ -15,5 +18,6 @@ int main() {
         generator.generate();
         helper_print_tickers(generator.get_symbols());
         std::cout << "\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(config::tick_interval));
     }
 }

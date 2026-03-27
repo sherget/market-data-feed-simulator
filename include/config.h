@@ -11,5 +11,6 @@ inline std::vector<market_data::Tick> tickers = {
     {"GOOG", 28920, 0}, {"NFLX", 9092, 0},
 };
 }
+inline int tick_interval = 100;
 
 #endif  // !CONFIG.H
