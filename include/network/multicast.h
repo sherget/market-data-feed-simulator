@@ -1,11 +1,11 @@
-#ifndef UDP_MULTICAST_H
-#define UDP_MULTICAST_H
+#ifndef MULTICAST_H
+#define MULTICAST_H
 
 #include <netinet/in.h>
 
 #include <string>
 
-namespace multicast {
+namespace network {
 class MulticastServer {
    public:
     MulticastServer();
@@ -19,6 +19,6 @@ class MulticastServer {
     sockaddr_in addr_{};
     bool running_{false};
 };
-}  // namespace multicast
+}  // namespace network
 
-#endif  // !UDP_MULTICAST_H
+#endif  // !MULTICAST_H

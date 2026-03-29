@@ -1,18 +1,17 @@
-#include "network/udp_multicast.h"
+#include "network/multicast.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <cstdio>
-#include <iostream>
 #include <string>
 
 #include "config.h"
 
-namespace multicast {
+namespace network {
 MulticastServer::MulticastServer() : sock_{-1} {};
+
 MulticastServer::~MulticastServer() {
     if (sock_ >= 0) {
         close(sock_);
@@ -34,12 +33,12 @@ void MulticastServer::run() {
     setsockopt(this->sock_, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 
     this->running_ = true;
-    std::cout << "Running UDP Multicast..." << std::endl;
 }
 
 void MulticastServer::stop() { this->running_ = false; }
+
 void MulticastServer::broadcast(const std::string& input) {
     sendto(this->sock_, input.c_str(), input.size(), 0, (sockaddr*)&this->addr_,
            sizeof(this->addr_));
 }
-}  // namespace multicast
+}  // namespace network
