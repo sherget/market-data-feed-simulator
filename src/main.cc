@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -36,7 +37,16 @@ int main(int argc, char* argv[]) {
         print_usage(argv[0]);
     }
 
+    int max_ticks = 0;
+    for (int i = 1; i < argc; i++) {
+        if (std::string(argv[i]) == "--ticks") {
+            max_ticks = std::stoll(argv[i + 1]);
+        }
+    }
+
     std::string mode = argv[1];
+
+    int tick_count = 0;
 
     if (mode == "publisher") {
         market_data::MarketDataGenerator generator;
@@ -45,10 +55,14 @@ int main(int argc, char* argv[]) {
         multicast_server.run();
 
         while (true) {
+            if (max_ticks > 0 && tick_count >= max_ticks) {
+                break;
+            }
             generator.generate();
             publish(generator.get_symbols(), multicast_server);
             // helper_print_tickers(generator.get_symbols());
-            std::this_thread::sleep_for(std::chrono::milliseconds(config::tick_interval));
+            tick_count++;
+            std::this_thread::sleep_for(std::chrono::microseconds(config::tick_interval));
         }
     } else if (mode == "subscriber") {
         network::MulticastSubscriber subscriber;

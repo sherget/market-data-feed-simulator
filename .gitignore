@@ -1,3 +1,5 @@
 build/
 .git/
 .cache/
+perf.data
+perf.data.old
