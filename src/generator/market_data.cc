@@ -12,12 +12,12 @@ namespace market_data {
 
 MarketDataGenerator::MarketDataGenerator() : mt_(rd_()), dist_(-1, 1) {}
 void MarketDataGenerator::generate() {
-    for (auto& tick : config::tickers) {
-        this->random_walk(tick);
+    for (auto& ticker : config::tickers) {
+        this->random_walk(ticker);
         auto now = std::chrono::system_clock::now();
         auto timestamp_ms =
             std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-        tick.timestamp = timestamp_ms;
+        ticker.timestamp = timestamp_ms;
     }
 }
 
