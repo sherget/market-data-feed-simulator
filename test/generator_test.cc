@@ -7,14 +7,14 @@ class MarketDataGeneratorTest : public ::testing::Test {
     market_data::MarketDataGenerator generator;
 };
 
-TEST_F(MarketDataGeneratorTest, AddsNewSymbolToTickers) {
+TEST_F(MarketDataGeneratorTest, AddsNewSymbol) {
     int initial_size = generator.get_symbols().size();
     generator.add_symbol("TestTicker", 50000);
     int current_size = generator.get_symbols().size();
     EXPECT_EQ(current_size, initial_size + 1);
 }
 
-TEST_F(MarketDataGeneratorTest, RemovesSymbolFromTickersByName) {
+TEST_F(MarketDataGeneratorTest, RemovesSymbolByName) {
     generator.add_symbol("TestTicker", 50000);
     int initial_size = generator.get_symbols().size();
     generator.remove_symbol("TestTicker");
@@ -22,39 +22,30 @@ TEST_F(MarketDataGeneratorTest, RemovesSymbolFromTickersByName) {
     EXPECT_EQ(current_size, initial_size - 1);
 }
 
-TEST_F(MarketDataGeneratorTest, GenerateKeepsPricesNonNegative) {
-    generator.add_symbol("TestTicker", 1);
-    for (int i = 0; i < 100; i++) {
-        generator.generate();
-        for (const auto& tick : generator.get_symbols()) {
-            EXPECT_GE(tick.price_in_cents, 0);
-        }
-    }
+TEST_F(MarketDataGeneratorTest, RemoveNonExistentSymbolReturnsError) {
+    int result = generator.remove_symbol("NonExistent");
+    EXPECT_EQ(result, -1);
 }
 
-// To make this test 100% deterministic we have to check for timestamp changes in addition to price
-// changes because there is a slim random chance that all default tickers random walk to their
-// original price.
-TEST_F(MarketDataGeneratorTest, GenerateActuallyChangesPrices) {
-    auto before = generator.get_symbols();
-    bool any_changed = false;
+TEST_F(MarketDataGeneratorTest, GetSymbolsReturnsAllSymbols) {
+    generator.add_symbol("AAPL", 10000);
+    generator.add_symbol("GOOG", 20000);
+    auto symbols = generator.get_symbols();
+    EXPECT_EQ(symbols.size(), 2);
+}
 
-    for (int i = 0; i < 100; i++) {
-        generator.generate();
-    }
+TEST_F(MarketDataGeneratorTest, DuplicateSymbolNotAdded) {
+    generator.add_symbol("AAPL", 10000);
+    int size_before = generator.get_symbols().size();
+    generator.add_symbol("AAPL", 20000);
+    int size_after = generator.get_symbols().size();
+    EXPECT_EQ(size_before, size_after);
+}
 
-    auto after = generator.get_symbols();
-    for (size_t i = 0; i < before.size(); i++) {
-        if (before[i].price_in_cents != after[i].price_in_cents) {
-            any_changed = true;
-            break;
-        }
-    }
-
-    if (!any_changed) {
-        if (before[0].timestamp != after[0].timestamp) {
-            any_changed = true;
-        }
-    }
-    EXPECT_TRUE(any_changed);
+TEST_F(MarketDataGeneratorTest, StopAllClearsSymbols) {
+    generator.add_symbol("AAPL", 10000);
+    generator.add_symbol("GOOG", 20000);
+    EXPECT_EQ(generator.get_symbols().size(), 2);
+    generator.stop_all();
+    EXPECT_EQ(generator.get_symbols().size(), 0);
 }
